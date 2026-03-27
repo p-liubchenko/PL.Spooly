@@ -12,12 +12,12 @@ public sealed class FilamentWarehouseCliDrawer
 		{
 			Console.Clear();
 			ConsoleEx.PrintHeader("Filament Warehouse");
-			Console.WriteLine("1) List spools");
-			Console.WriteLine("2) Add spool purchase");
-			Console.WriteLine("3) Add stock to existing material (weighted average price)");
-			Console.WriteLine("4) Consume material manually");
-			Console.WriteLine("5) Remove spool/material entry");
-			Console.WriteLine("0) Back");
+			ConsoleEx.DrawMenuItem("1) List spools");
+			ConsoleEx.DrawMenuItem("2) Add spool purchase");
+			ConsoleEx.DrawMenuItem("3) Add stock to existing material (weighted average price)");
+			ConsoleEx.DrawMenuItem("4) Consume material manually");
+			ConsoleEx.DrawMenuItem("5) Remove spool/material entry", ConsoleEx.Severity.Unsafe);
+			ConsoleEx.DrawMenuItem("0) Back");
 			Console.WriteLine();
 
 			switch (ConsoleEx.ReadMenuChoice("Choose an option"))
@@ -184,8 +184,11 @@ public sealed class FilamentWarehouseCliDrawer
 		ListMaterialsCompact(appData);
 		var index = ConsoleEx.ReadInt("Enter material number to remove", 1, appData.Materials.Count) - 1;
 		var removed = appData.Materials[index];
-		warehouse.RemoveMaterial(appData, index);
-		ConsoleEx.ShowMessage($"Removed: {removed.Name}");
+        ConsoleEx.RequestConfirmation($"Remove material '{removed.Name}'?", ConsoleEx.Severity.Critical, () =>
+		{
+			warehouse.RemoveMaterial(appData, index);
+          ConsoleEx.ShowMessage($"Removed: {removed.Name}", ConsoleEx.Severity.Critical);
+		});
 	}
 
 	private static void ListMaterialsCompact(AppData appData)

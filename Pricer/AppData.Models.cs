@@ -14,6 +14,7 @@ public sealed class AppData
 	public List<FilamentMaterial> Materials { get; set; } = new();
 	public List<Printer> Printers { get; set; } = new();
 	public List<PrintTransaction> PrintTransactions { get; set; } = new();
+ public List<StockTransaction> StockTransactions { get; set; } = new();
 	public List<Currency> Currencies { get; set; } = new();
 	public Guid? SelectedPrinterId { get; set; }
 	public Guid? OperatingCurrencyId { get; set; }

@@ -14,8 +14,8 @@ public sealed class CurrencyManagerCliDrawer
 
 			var baseCurrency = appData.Currencies.FirstOrDefault(c => c.Value == 1m);
 			var operating = appData.GetOperatingCurrency();
-			Console.WriteLine($"Base currency: {(baseCurrency is null ? "(none)" : baseCurrency.Code)}");
-			Console.WriteLine($"Operating currency: {(operating is null ? "(none)" : operating.Code)}");
+           ConsoleEx.ShowInline($"Base currency: {(baseCurrency is null ? "(none)" : baseCurrency.Code)}", ConsoleEx.Severity.Safe);
+			ConsoleEx.ShowInline($"Operating currency: {(operating is null ? "(none)" : operating.Code)}", ConsoleEx.Severity.Safe);
 			Console.WriteLine();
 
 			Console.WriteLine("1) List currencies");
@@ -168,12 +168,15 @@ public sealed class CurrencyManagerCliDrawer
 
 		var index = ConsoleEx.ReadInt("Select currency", 1, appData.Currencies.Count) - 1;
 		var removedCode = appData.Currencies[index].Code;
-		if (!manager.RemoveCurrency(appData, index, out var error))
-		{
-			ConsoleEx.ShowMessage(error);
-			return;
-		}
+        ConsoleEx.RequestConfirmation($"Remove currency '{removedCode}'?", ConsoleEx.Severity.Critical, () =>
+		   {
+			   if (!manager.RemoveCurrency(appData, index, out var error))
+			   {
+                ConsoleEx.ShowMessage(error, ConsoleEx.Severity.Critical);
+				   return;
+			   }
 
-		ConsoleEx.ShowMessage($"Removed: {removedCode}");
+            ConsoleEx.ShowMessage($"Removed: {removedCode}", ConsoleEx.Severity.Critical);
+		   });
 	}
 }

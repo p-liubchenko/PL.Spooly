@@ -17,7 +17,7 @@ public sealed class PrinterManagerCliDrawer
 			{
 				var selected = store.GetSelectedPrinter();
 				Console.WriteLine($"Printers: {store.Printers.Count}");
-				Console.WriteLine($"Selected: {(selected is null ? "(none)" : selected.Name)}");
+				ConsoleEx.ShowInline($"Selected: {(selected is null ? "(none)" : selected.Name)}", ConsoleEx.Severity.Safe);
 				if (selected is not null)
 				{
 					Console.WriteLine($"  Avg power: {selected.AveragePowerWatts:F0} W");
@@ -30,11 +30,11 @@ public sealed class PrinterManagerCliDrawer
 			}
 
 			Console.WriteLine();
-			Console.WriteLine("1) List printers");
-			Console.WriteLine("2) Add printer");
-			Console.WriteLine("3) Select printer");
-			Console.WriteLine("4) Remove printer");
-			Console.WriteLine("0) Back");
+			ConsoleEx.DrawMenuItem("1) List printers");
+			ConsoleEx.DrawMenuItem("2) Add printer");
+			ConsoleEx.DrawMenuItem("3) Select printer");
+			ConsoleEx.DrawMenuItem("4) Remove printer", ConsoleEx.Severity.Unsafe);
+			ConsoleEx.DrawMenuItem("0) Back");
 			Console.WriteLine();
 
 			switch (ConsoleEx.ReadMenuChoice("Choose an option"))
@@ -93,7 +93,9 @@ public sealed class PrinterManagerCliDrawer
 			Id = Guid.NewGuid(),
 			Name = ConsoleEx.ReadRequiredString("Printer name"),
 			AveragePowerWatts = ConsoleEx.ReadDecimal("Average power draw (W)", min: 0),
-			HourlyCost = ConsoleEx.ReadDecimal($"Hourly overhead cost ({store.GetOperatingCurrency()?.Code ?? "(base)"}/h)", min: 0)
+            HourlyCostMoney = new Money(
+				ConsoleEx.ReadDecimal($"Hourly overhead cost ({store.GetOperatingCurrency()?.Code ?? "(base)"}/h)", min: 0),
+				store.OperatingCurrencyId)
 		};
 
 		manager.AddPrinter(store, printer);
@@ -144,12 +146,16 @@ public sealed class PrinterManagerCliDrawer
 
 		var index = ConsoleEx.ReadInt("Enter printer number to remove", 1, store.Printers.Count) - 1;
 		var removed = store.Printers[index].Name;
-		if (!manager.RemovePrinter(store, index, out var error))
-		{
-			ConsoleEx.ShowMessage(error);
-			return;
-		}
+		ConsoleEx.RequestConfirmation($"Remove printer '{removed}'?", ConsoleEx.Severity.Critical, () =>
+		   {
+			   if (!manager.RemovePrinter(store, index, out var error))
+			   {
+				   ConsoleEx.ShowMessage(error, ConsoleEx.Severity.Critical);
+				   return;
+			   }
 
-		ConsoleEx.ShowMessage($"Removed: {removed}");
+			   ConsoleEx.ShowMessage($"Removed: {removed}", ConsoleEx.Severity.Critical);
+		   });
 	}
 }
+

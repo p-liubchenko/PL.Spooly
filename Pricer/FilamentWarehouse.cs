@@ -7,10 +7,11 @@ using System.Linq;
 
 namespace Pricer;
 
-public sealed class FilamentWarehouse(IAppDataStore store, string dataFilePath)
+public sealed class FilamentWarehouse(IAppDataStore store, string dataFilePath, StockTransactionsManager stockTransactions)
 {
 	private readonly IAppDataStore _store = store;
 	private readonly string _dataFilePath = dataFilePath;
+	private readonly StockTransactionsManager _stockTransactions = stockTransactions;
 
 	private const decimal DefaultDiameterMm = 1.75m;
 
@@ -23,9 +24,9 @@ public sealed class FilamentWarehouse(IAppDataStore store, string dataFilePath)
         var avg = totalPrice / material.AmountKg;
 		var currencyId = appData.OperatingCurrencyId;
 		material.AveragePricePerKgMoney = new Money(avg, currencyId);
-		material.AveragePricePerKg = avg;
 		appData.Materials.Add(material);
 		_store.Save(_dataFilePath, appData);
+       _stockTransactions.RecordSpoolPurchase(appData, material, kgAdded: material.AmountKg, metersAdded: material.EstimatedLengthMeters, totalCost: new Money(totalPrice, currencyId));
 	}
 
 	public bool RestockExistingMaterial(AppData appData, FilamentMaterial material, decimal addKg, decimal addMeters, decimal addTotalPrice)
@@ -43,8 +44,7 @@ public sealed class FilamentWarehouse(IAppDataStore store, string dataFilePath)
 		material.AmountKg = newKg;
 		material.EstimatedLengthMeters += addMeters;
      var newAvgBase = newKg <= 0 ? 0 : newValueBase / newKg;
-		material.AveragePricePerKgMoney = Money.FromBase(appData, newAvgBase, appData.OperatingCurrencyId);
-		material.AveragePricePerKg = material.AveragePricePerKgMoney.Amount;
+     material.AveragePricePerKgMoney = Money.FromBase(appData, newAvgBase, appData.OperatingCurrencyId);
 
 		_store.Save(_dataFilePath, appData);
 		return true;

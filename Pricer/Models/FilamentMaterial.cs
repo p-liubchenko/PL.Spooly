@@ -11,6 +11,5 @@ public sealed class FilamentMaterial
 	public string Grade { get; set; } = string.Empty;
 	public decimal AmountKg { get; set; }
 	public decimal EstimatedLengthMeters { get; set; }
-	public decimal AveragePricePerKg { get; set; }
 	public Money AveragePricePerKgMoney { get; set; }
 }

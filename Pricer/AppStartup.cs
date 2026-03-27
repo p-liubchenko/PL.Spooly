@@ -24,11 +24,6 @@ public sealed class AppStartup(IAppDataStore store)
 			store.Settings = new AppSettings();
 		}
 
-		if (store.Settings.ElectricityPricePerKwh <= 0)
-		{
-			store.Settings.ElectricityPricePerKwh = 6.50m;
-		}
-
 		if (!store.Printers.Any())
 		{
 			var defaultPrinter = new Printer
@@ -36,9 +31,8 @@ public sealed class AppStartup(IAppDataStore store)
 				Id = Guid.NewGuid(),
 				Name = "Default printer",
 				AveragePowerWatts = 120m,
-				HourlyCost = 5.00m
+              HourlyCostMoney = new Money(5.00m, store.GetBaseCurrency()?.Id)
 			};
-			defaultPrinter.HourlyCostMoney = new Money(defaultPrinter.HourlyCost, store.OperatingCurrencyId);
 			store.Printers.Add(defaultPrinter);
 			store.SelectedPrinterId = defaultPrinter.Id;
 		}
@@ -95,34 +89,30 @@ public sealed class AppStartup(IAppDataStore store)
 	{
 		var baseCurrencyId = store.GetBaseCurrency()?.Id;
 
-		if (store.Settings.ElectricityPricePerKwhMoney.Amount == 0 && store.Settings.ElectricityPricePerKwh > 0)
+        if (store.Settings.ElectricityPricePerKwhMoney.Amount == 0)
 		{
-			store.Settings.ElectricityPricePerKwhMoney = new Money(store.Settings.ElectricityPricePerKwh, baseCurrencyId);
+          store.Settings.ElectricityPricePerKwhMoney = new Money(6.50m, baseCurrencyId);
 		}
-		store.Settings.ElectricityPricePerKwh = store.Settings.ElectricityPricePerKwhMoney.Amount;
 
-		if (store.Settings.FixedCostPerPrintMoney.Amount == 0 && store.Settings.FixedCostPerPrint != 0)
+     if (store.Settings.FixedCostPerPrintMoney.Amount == 0)
 		{
-			store.Settings.FixedCostPerPrintMoney = new Money(store.Settings.FixedCostPerPrint, baseCurrencyId);
+            store.Settings.FixedCostPerPrintMoney = new Money(0m, baseCurrencyId);
 		}
-		store.Settings.FixedCostPerPrint = store.Settings.FixedCostPerPrintMoney.Amount;
 
 		foreach (var p in store.Printers)
 		{
-			if (p.HourlyCostMoney.Amount == 0 && p.HourlyCost != 0)
+         if (p.HourlyCostMoney.Amount == 0)
 			{
-				p.HourlyCostMoney = new Money(p.HourlyCost, baseCurrencyId);
+                p.HourlyCostMoney = new Money(0m, baseCurrencyId);
 			}
-			p.HourlyCost = p.HourlyCostMoney.Amount;
 		}
 
 		foreach (var m in store.Materials)
 		{
-			if (m.AveragePricePerKgMoney.Amount == 0 && m.AveragePricePerKg != 0)
+           if (m.AveragePricePerKgMoney.Amount == 0)
 			{
-				m.AveragePricePerKgMoney = new Money(m.AveragePricePerKg, baseCurrencyId);
+              m.AveragePricePerKgMoney = new Money(0m, baseCurrencyId);
 			}
-			m.AveragePricePerKg = m.AveragePricePerKgMoney.Amount;
 		}
 	}
 }

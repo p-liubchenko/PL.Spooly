@@ -14,7 +14,7 @@ public sealed class PrinterManager(IAppDataStore store, string dataFilePath)
 
 	public void AddPrinter(AppData appData, Printer printer)
 	{
-      printer.HourlyCostMoney = new Money(printer.HourlyCost, appData.OperatingCurrencyId);
+     // HourlyCostMoney is provided by the caller in the currency it was entered in.
 		appData.Printers.Add(printer);
 		if (appData.SelectedPrinterId is null)
 		{

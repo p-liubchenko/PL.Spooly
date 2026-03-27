@@ -130,7 +130,6 @@ public sealed class AppCli(
 				{
 					var value = ConsoleEx.ReadDecimal($"Electricity price in {store.GetOperatingCurrency()?.Code ?? "(base)"}/kWh", min: 0);
 					store.Settings.ElectricityPricePerKwhMoney = new Money(value, store.OperatingCurrencyId);
-					store.Settings.ElectricityPricePerKwh = value;
 					DataStore.Save(dataFilePath, store);
 					ConsoleEx.ShowMessage("Electricity price updated.");
 					break;
@@ -139,13 +138,12 @@ public sealed class AppCli(
 				{
 					var value = ConsoleEx.ReadDecimal($"Fixed cost per print in {store.GetOperatingCurrency()?.Code ?? "(base)"}", min: 0);
 					store.Settings.FixedCostPerPrintMoney = new Money(value, store.OperatingCurrencyId);
-					store.Settings.FixedCostPerPrint = value;
 					DataStore.Save(dataFilePath, store);
 					ConsoleEx.ShowMessage("Fixed print cost updated.");
 					break;
 				}
 				case "4":
-					store.Settings.FixedCostPerPrint = ConsoleEx.ReadDecimal("Fixed cost per print", min: 0);
+                       store.Settings.FixedCostPerPrintMoney = new Money(ConsoleEx.ReadDecimal("Fixed cost per print", min: 0), store.OperatingCurrencyId);
 					DataStore.Save(dataFilePath, store);
 					ConsoleEx.ShowMessage("Fixed print cost updated.");
 					break;

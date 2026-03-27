@@ -18,13 +18,16 @@ public sealed class PrintTransactionsManager(IAppDataStore store, string dataFil
 			return;
 		}
 
+		var currencyId = appData.OperatingCurrencyId;
+		var totalOriginal = Money.FromBase(appData, result.Total, currencyId);
+
 		var tx = new PrintTransaction
 		{
 			Id = Guid.NewGuid(),
 			CreatedAt = DateTimeOffset.UtcNow,
 			Status = PrintTransactionStatus.Completed,
-           MaterialId = request.Material.Id,
-			MaterialNameSnapshot = request.Material.Name,
+			MaterialId = request.Material.Id,
+           MaterialNameSnapshot = string.IsNullOrWhiteSpace(request.Material.Color) ? request.Material.Name : $"{request.Material.Name} ({request.Material.Color})",
 			FilamentKg = result.FilamentKg,
 			EstimatedMetersUsed = result.EstimatedMetersUsed,
 			PrinterId = printer.Id,
@@ -36,7 +39,8 @@ public sealed class PrintTransactionsManager(IAppDataStore store, string dataFil
 			PrinterWearCost = result.PrinterWearCost,
 			FixedCost = result.FixedCost,
 			ExtraFixedCost = result.ExtraFixedCost,
-			TotalCost = result.Total
+            OriginalCost = totalOriginal,
+			TotalCost = totalOriginal
 		};
 
 		appData.PrintTransactions.Add(tx);
@@ -46,7 +50,7 @@ public sealed class PrintTransactionsManager(IAppDataStore store, string dataFil
 	public bool TryRevert(AppData appData, Guid transactionId, out string error)
 	{
 		error = string.Empty;
-     var tx = appData.GetTransaction(transactionId);
+		var tx = appData.GetTransaction(transactionId);
 		if (tx is null)
 		{
 			error = "Transaction not found.";
@@ -78,7 +82,7 @@ public sealed class PrintTransactionsManager(IAppDataStore store, string dataFil
 	public bool TryDelete(AppData appData, Guid transactionId, out string error)
 	{
 		error = string.Empty;
-        var index = appData.PrintTransactions.FindIndex(x => x.Id == transactionId);
+		var index = appData.PrintTransactions.FindIndex(x => x.Id == transactionId);
 		if (index < 0)
 		{
 			error = "Transaction not found.";

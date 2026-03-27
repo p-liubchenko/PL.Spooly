@@ -6,6 +6,35 @@ namespace Pricer;
 
 public static class ConsoleEx
 {
+	public enum Severity
+	{
+		Safe,
+		Unsafe,
+		Critical
+	}
+
+	private static ConsoleColor GetSeverityColor(Severity severity)
+		=> severity switch
+		{
+			Severity.Safe => ConsoleColor.White,
+			Severity.Unsafe => ConsoleColor.DarkYellow,
+			Severity.Critical => ConsoleColor.Red,
+			_ => ConsoleColor.White
+		};
+
+	private static void WithColor(ConsoleColor color, Action action)
+	{
+		var prev = Console.ForegroundColor;
+		try
+		{
+			Console.ForegroundColor = color;
+			action();
+		}
+		finally
+		{
+			Console.ForegroundColor = prev;
+		}
+	}
 	private static readonly Regex HoursRegex = new(
 		"^\\s*(?:(?<h>\\d+)\\s*h)?\\s*(?:(?<m>\\d+)\\s*m)?\\s*(?:(?<s>\\d+)\\s*s)?\\s*$",
 		RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
@@ -32,10 +61,95 @@ public static class ConsoleEx
 		Pause();
 	}
 
+	public static void ShowMessage(string message, Severity severity)
+	{
+		Console.WriteLine();
+		WithColor(GetSeverityColor(severity), () => Console.WriteLine(message));
+		Console.WriteLine();
+		Pause();
+	}
+
+	public static void DrawMenuItem(string message, Severity severity = Severity.Safe, int? index = null)
+	{
+		if (index is null)
+			WithColor(GetSeverityColor(severity), () => Console.WriteLine(message));
+		else
+			WithColor(GetSeverityColor(severity), () => Console.WriteLine($"{index}) {message}"));
+	}
+
+	public static void ShowInline(string message, Severity severity)
+		=> WithColor(GetSeverityColor(severity), () => Console.WriteLine(message));
+
+	public static void WriteInline(string message, Severity severity)
+		=> WithColor(GetSeverityColor(severity), () => Console.Write(message));
+
+	public static void RequestConfirmation(string msg, Action next)
+	{
+		Console.WriteLine();
+		Console.Write($"{msg} (y/n): ");
+		while (true)
+		{
+			var key = Console.ReadKey(intercept: true);
+			var ch = char.ToLowerInvariant(key.KeyChar);
+			if (ch == 'y')
+			{
+				Console.WriteLine('y');
+				next();
+				return;
+			}
+			if (ch == 'n')
+			{
+				Console.WriteLine('n');
+				return;
+			}
+		}
+	}
+
+	public static void RequestConfirmation(string msg, Severity severity, Action next)
+	{
+		Console.WriteLine();
+		WithColor(GetSeverityColor(severity), () => Console.Write($"{msg} (y/n): "));
+		while (true)
+		{
+			var key = Console.ReadKey(intercept: true);
+			var ch = char.ToLowerInvariant(key.KeyChar);
+			if (ch == 'y')
+			{
+				Console.WriteLine('y');
+				next();
+				return;
+			}
+			if (ch == 'n')
+			{
+				Console.WriteLine('n');
+				return;
+			}
+		}
+	}
+
 	public static string ReadMenuChoice(string prompt)
 	{
 		Console.Write($"{prompt}: ");
-		return Console.ReadLine()?.Trim() ?? string.Empty;
+		while (true)
+		{
+			var key = Console.ReadKey(intercept: true);
+			if (key.Key == ConsoleKey.Enter)
+			{
+				continue;
+			}
+
+			if (key.Key == ConsoleKey.Escape)
+				return "0";
+
+			var ch = key.KeyChar;
+			if (char.IsControl(ch))
+			{
+				continue;
+			}
+
+			Console.WriteLine(ch);
+			return ch.ToString();
+		}
 	}
 
 	public static string ReadRequiredString(string label)
