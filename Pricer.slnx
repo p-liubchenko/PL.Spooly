@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="Pricer.Application/Pricer.Application.csproj" />
   <Project Path="Pricer.Cli/Pricer.Cli.csproj" />
   <Project Path="Pricer.DAL/Pricer.DAL.csproj" />
   <Project Path="Pricer/Pricer.csproj" />

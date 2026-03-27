@@ -1,9 +1,10 @@
 using System;
 
-namespace Pricer;
+namespace Pricer.Models;
 
 public readonly record struct Money(decimal Amount, Guid? CurrencyId)
 {
+	public static Money Zero => new(0m, null);
 	public static Money Base(decimal amount) => new(amount, null);
 
 	public decimal ToBase(AppData data)

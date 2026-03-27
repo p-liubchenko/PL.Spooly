@@ -1,6 +1,7 @@
 using Pricer.Models;
 
 using System;
+using System.IO;
 using System.Linq;
 
 namespace Pricer;
@@ -11,17 +12,68 @@ public sealed class AppStartup(IAppDataStore store)
 
 	public AppData LoadAndTreat(string dataFilePath)
 	{
+        MaybeMigrateFileToDb(dataFilePath);
+
 		var appData = _store.Load(dataFilePath);
-		SeedDefaultsAndMigrate(appData);
-		_store.Save(dataFilePath, appData);
+        if (!IsDbMode())
+		{
+			SeedDefaultsAndMigrate(appData);
+			_store.Save(dataFilePath, appData);
+		}
 		return appData;
+	}
+
+	private bool IsDbMode()
+	{
+		var storeType = _store.GetType();
+		return string.Equals(storeType.Name, "UnitOfWorkAppDataStore", StringComparison.Ordinal);
+	}
+
+	private void MaybeMigrateFileToDb(string dataFilePath)
+	{
+		if (!File.Exists(dataFilePath))
+		{
+			return;
+		}
+
+       if (!IsDbMode())
+		{
+			return;
+		}
+
+		var fileData = DataStore.Load(dataFilePath);
+		if (fileData is null)
+		{
+			return;
+		}
+
+		SeedDefaultsAndMigrate(fileData);
+		_store.Save(dataFilePath, fileData);
+		ArchiveMigratedFile(dataFilePath);
+	}
+
+	private static void ArchiveMigratedFile(string dataFilePath)
+	{
+		try
+		{
+			var backupPath = dataFilePath + $".migrated.{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.bak";
+			File.Move(dataFilePath, backupPath, overwrite: true);
+		}
+		catch
+		{
+			// best-effort
+		}
 	}
 
 	public static void SeedDefaultsAndMigrate(AppData store)
 	{
 		if (store.Settings is null)
 		{
-			store.Settings = new AppSettings();
+         store.Settings = new AppSettings { Id = Guid.NewGuid() };
+		}
+		else if (store.Settings.Id == Guid.Empty)
+		{
+			store.Settings.Id = Guid.NewGuid();
 		}
 
 		if (!store.Printers.Any())

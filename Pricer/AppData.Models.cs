@@ -1,5 +1,6 @@
 using Pricer.Enums;
 using Pricer.Models;
+using Pricer.Models.Transactions;
 
 using System;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ public static class DataStore
 			var data = JsonSerializer.Deserialize<AppData>(json, ProgramJson.Options);
 			return data ?? new AppData();
 		}
-		catch
+		catch(Exception ex)
 		{
 			return new AppData();
 		}

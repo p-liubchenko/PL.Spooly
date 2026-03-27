@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace Pricer;
+namespace Pricer.Models;
 
 public sealed class Currency
 {

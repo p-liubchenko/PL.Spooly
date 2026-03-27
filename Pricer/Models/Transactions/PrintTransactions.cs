@@ -1,10 +1,9 @@
 using Pricer.Abstractions;
-using Pricer.Models;
 
 using System;
 using System.Linq;
 
-namespace Pricer;
+namespace Pricer.Models.Transactions;
 
 public enum PrintTransactionStatus
 {
@@ -12,11 +11,8 @@ public enum PrintTransactionStatus
 	Reverted
 }
 
-public sealed class PrintTransaction: ITransaction
+public sealed class PrintTransaction : TransactionBase
 {
-	public Guid Id { get; set; }
-	public DateTimeOffset CreatedAt { get; set; }
-  public Money? OriginalCost { get; set; }
 	public PrintTransactionStatus Status { get; set; }
 
 	public Guid MaterialId { get; set; }
@@ -34,7 +30,6 @@ public sealed class PrintTransaction: ITransaction
 	public decimal PrinterWearCost { get; set; }
 	public decimal FixedCost { get; set; }
 	public decimal ExtraFixedCost { get; set; }
-	public Money? TotalCost { get; set; }
 
 	public string? Note { get; set; }
 	public Guid? RevertedByTransactionId { get; set; }

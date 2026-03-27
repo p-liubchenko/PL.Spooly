@@ -1,3 +1,6 @@
+using Pricer.Models;
+using Pricer.Models.Transactions;
+
 using System;
 using System.Linq;
 

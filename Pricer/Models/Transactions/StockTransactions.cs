@@ -3,7 +3,7 @@ using Pricer.Abstractions;
 using System;
 using System.Linq;
 
-namespace Pricer;
+namespace Pricer.Models.Transactions;
 
 public enum StockTransactionType
 {
@@ -13,11 +13,8 @@ public enum StockTransactionType
 	Restock
 }
 
-public sealed class StockTransaction: ITransaction
+public sealed class StockTransaction: TransactionBase
 {
-	public Guid Id { get; set; }
-	public DateTimeOffset CreatedAt { get; set; }
-  public Money? OriginalCost { get; set; }
 	public StockTransactionType Type { get; set; }
 
 	public Guid MaterialId { get; set; }
@@ -27,7 +24,6 @@ public sealed class StockTransaction: ITransaction
 	public decimal KgDelta { get; set; }
 	public decimal MetersDelta { get; set; }
 
-	public Money? TotalCost { get; set; }
 	public string? Note { get; set; }
 }
 

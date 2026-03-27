@@ -1,0 +1,1 @@
+namespace Pricer.Application.DataAccess;

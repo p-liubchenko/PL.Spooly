@@ -1,3 +1,5 @@
+using Pricer.Models;
+
 namespace Pricer;
 
 public sealed class AppCli(

@@ -1,3 +1,5 @@
+using Pricer.Models.Transactions;
+
 using System;
 using System.Linq;
 
@@ -23,7 +25,7 @@ public sealed class PrintTransactionsCliDrawer
 			switch (ConsoleEx.ReadMenuChoice("Choose an option"))
 			{
 				case "1":
-                  ListAll(appData);
+					ListAll(appData);
 					break;
 				case "2":
 					Revert(appData, manager);
@@ -40,10 +42,10 @@ public sealed class PrintTransactionsCliDrawer
 		}
 	}
 
-  private static void ListAll(AppData appData)
+	private static void ListAll(AppData appData)
 	{
 		Console.Clear();
-        ConsoleEx.PrintHeader("Transactions");
+		ConsoleEx.PrintHeader("Transactions");
 
 		if (!appData.PrintTransactions.Any() && !appData.StockTransactions.Any())
 		{
@@ -52,7 +54,7 @@ public sealed class PrintTransactionsCliDrawer
 			return;
 		}
 
-        var printTx = appData.PrintTransactions.Select(tx => BuildPrintLine(appData, tx));
+		var printTx = appData.PrintTransactions.Select(tx => BuildPrintLine(appData, tx));
 		var stockTx = appData.StockTransactions.Select(tx => BuildStockLine(appData, tx));
 
 		var merged = printTx
@@ -63,7 +65,7 @@ public sealed class PrintTransactionsCliDrawer
 
 		for (int i = 0; i < merged.Count; i++)
 		{
-            RenderMergedLine(i + 1, merged[i]);
+			RenderMergedLine(i + 1, merged[i]);
 		}
 
 		Console.WriteLine();
@@ -93,16 +95,16 @@ public sealed class PrintTransactionsCliDrawer
 		string MoneyText,
 		ConsoleEx.Severity MoneySeverity);
 
-  private static TransactionLine BuildPrintLine(AppData appData, PrintTransaction tx)
+	private static TransactionLine BuildPrintLine(AppData appData, PrintTransaction tx)
 	{
 		var status = tx.Status == PrintTransactionStatus.Reverted ? "REVERTED" : "OK";
-		var totalBase = tx.TotalCost?.ToBase(appData) ?? 0m;
-        var moneyText = MoneyFormatter.Format(appData, totalBase);
+		var totalBase = tx.TotalCost?.ToBase(appData) ?? 0;
+		var moneyText = MoneyFormatter.Format(appData, totalBase);
 		var materialDisplay = GetMaterialDisplayName(appData, tx.MaterialId, tx.MaterialNameSnapshot);
 
 		return new TransactionLine(
 			CreatedAt: tx.CreatedAt,
-            Prefix: $"{tx.CreatedAt.LocalDateTime:yyyy-MM-dd HH:mm} | PRINT | {status} | {materialDisplay}",
+			Prefix: $"{tx.CreatedAt.LocalDateTime:yyyy-MM-dd HH:mm} | PRINT | {status} | {materialDisplay}",
 			KgText: $"-{tx.FilamentKg:F3} kg",
 			KgSeverity: ConsoleEx.Severity.Critical,
 			Tail: $"{tx.PrintHours:F2} h",
@@ -110,13 +112,14 @@ public sealed class PrintTransactionsCliDrawer
 			MoneySeverity: ConsoleEx.Severity.Unsafe);
 	}
 
-  private static TransactionLine BuildStockLine(AppData appData, StockTransaction tx)
+	private static TransactionLine BuildStockLine(AppData appData, StockTransaction tx)
 	{
-		var costBase = tx.TotalCost?.ToBase(appData) ?? 0m;
-        var moneyText = MoneyFormatter.Format(appData, costBase);
-        var materialDisplay = GetMaterialDisplayName(appData, tx.MaterialId, tx.MaterialNameSnapshot);
+		var costBase = tx.TotalCost?.ToBase(appData) ?? 0
+			;
+		var moneyText = MoneyFormatter.Format(appData, costBase);
+		var materialDisplay = GetMaterialDisplayName(appData, tx.MaterialId, tx.MaterialNameSnapshot);
 		var signKg = tx.KgDelta >= 0 ? "+" : "";
-     var signM = tx.MetersDelta >= 0 ? "+" : "";
+		var signM = tx.MetersDelta >= 0 ? "+" : "";
 		var kgSeverity = tx.KgDelta >= 0 ? ConsoleEx.Severity.Safe : ConsoleEx.Severity.Critical;
 		var moneySeverity = tx.Type == StockTransactionType.SpoolPurchase || tx.Type == StockTransactionType.Restock
 			? ConsoleEx.Severity.Unsafe
@@ -124,7 +127,7 @@ public sealed class PrintTransactionsCliDrawer
 
 		return new TransactionLine(
 			CreatedAt: tx.CreatedAt,
-           Prefix: $"{tx.CreatedAt.LocalDateTime:yyyy-MM-dd HH:mm} | STOCK | {tx.Type} | {materialDisplay}",
+		   Prefix: $"{tx.CreatedAt.LocalDateTime:yyyy-MM-dd HH:mm} | STOCK | {tx.Type} | {materialDisplay}",
 			KgText: $"{signKg}{tx.KgDelta:F3} kg",
 			KgSeverity: kgSeverity,
 			Tail: $"{signM}{tx.MetersDelta:F1} m",
@@ -162,16 +165,16 @@ public sealed class PrintTransactionsCliDrawer
 
 		var index = ConsoleEx.ReadInt("Select transaction", 1, list.Count) - 1;
 		var tx = list[index];
-     ConsoleEx.RequestConfirmation("Revert this transaction and restore stock?", ConsoleEx.Severity.Unsafe, () =>
-		{
-			if (!manager.TryRevert(appData, tx.Id, out var error))
-			{
-               ConsoleEx.ShowMessage(error, ConsoleEx.Severity.Unsafe);
-				return;
-			}
+		ConsoleEx.RequestConfirmation("Revert this transaction and restore stock?", ConsoleEx.Severity.Unsafe, () =>
+		   {
+			   if (!manager.TryRevert(appData, tx.Id, out var error))
+			   {
+				   ConsoleEx.ShowMessage(error, ConsoleEx.Severity.Unsafe);
+				   return;
+			   }
 
-            ConsoleEx.ShowMessage("Transaction reverted (stock restored).", ConsoleEx.Severity.Unsafe);
-		});
+			   ConsoleEx.ShowMessage("Transaction reverted (stock restored).", ConsoleEx.Severity.Unsafe);
+		   });
 	}
 
 	private static void Delete(AppData appData, PrintTransactionsManager manager)
@@ -193,15 +196,15 @@ public sealed class PrintTransactionsCliDrawer
 
 		var index = ConsoleEx.ReadInt("Select transaction", 1, list.Count) - 1;
 		var tx = list[index];
-     ConsoleEx.RequestConfirmation("Delete this transaction?", ConsoleEx.Severity.Critical, () =>
-		{
-			if (!manager.TryDelete(appData, tx.Id, out var error))
-			{
-               ConsoleEx.ShowMessage(error, ConsoleEx.Severity.Critical);
-				return;
-			}
+		ConsoleEx.RequestConfirmation("Delete this transaction?", ConsoleEx.Severity.Critical, () =>
+		   {
+			   if (!manager.TryDelete(appData, tx.Id, out var error))
+			   {
+				   ConsoleEx.ShowMessage(error, ConsoleEx.Severity.Critical);
+				   return;
+			   }
 
-          ConsoleEx.ShowMessage("Transaction deleted.", ConsoleEx.Severity.Critical);
-		});
+			   ConsoleEx.ShowMessage("Transaction deleted.", ConsoleEx.Severity.Critical);
+		   });
 	}
 }
