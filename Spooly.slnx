@@ -1,0 +1,12 @@
+<Solution>
+  <Project Path="Spooly.Application/Spooly.Application.csproj" />
+  <Project Path="Spooly.Cli/Spooly.Cli.csproj" />
+  <Project Path="Spooly.DAL.Security/Spooly.DAL.Security.csproj" Id="cae45fbc-919e-491a-87a2-9dbdbd02f042" />
+  <Project Path="Spooly.DAL/Spooly.DAL.csproj" />
+  <Project Path="Spooly.WebApp/spooly.webapp.client/spooly.webapp.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="Spooly.WebApp/Spooly.WebApp.Server/Spooly.WebApp.Server.csproj" Id="3283377b-15c3-4ed8-bb5e-08eb50d61b29" />
+  <Project Path="Spooly/Spooly.csproj" />
+</Solution>
