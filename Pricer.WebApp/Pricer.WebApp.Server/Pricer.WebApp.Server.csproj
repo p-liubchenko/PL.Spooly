@@ -7,11 +7,11 @@
     <UserSecretsId>6c4a21fc-d121-40f0-bab8-a04d45e06aa5</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
-    <SpaRoot>..\pricer.webapp.client\</SpaRoot>
+    <SpaRoot>../pricer.webapp.client/</SpaRoot>
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:52298</SpaProxyServerUrl>
     <!-- Angular output path (relative to SpaRoot) produced by "npm run build" -->
-    <SpaDistPath>$(SpaRoot)dist\pricer.webapp.client\browser\</SpaDistPath>
+    <SpaDistPath>$(SpaRoot)dist/pricer.webapp.client/browser/</SpaDistPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -46,10 +46,10 @@
   <Target Name="IncludeAngularDist" BeforeTargets="PrepareForPublish"
           Condition="'$(Configuration)' == 'Release' And Exists('$(SpaDistPath)')">
     <ItemGroup>
-      <DistFiles Include="$(SpaDistPath)**\*" />
+      <DistFiles Include="$(SpaDistPath)**/*" />
       <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')"
                              Exclude="@(ResolvedFileToPublish)">
-        <RelativePath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+        <RelativePath>wwwroot/%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       </ResolvedFileToPublish>
