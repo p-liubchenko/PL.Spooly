@@ -55,7 +55,7 @@
       <div class="field">
         <label>Type</label>
         <select [(ngModel)]="addForm.type" name="type">
-          <option *ngFor="let t of filamentTypes" [value]="t.value">{{ t.label }}</option>
+          <option *ngFor="let t of filamentTypes" [ngValue]="t.value">{{ t.label }}</option>
         </select>
       </div>
       <div class="field">

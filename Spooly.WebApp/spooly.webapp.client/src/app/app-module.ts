@@ -22,6 +22,9 @@ import { SettingsComponent } from './pages/settings/settings.component';
 import { TransactionsComponent } from './pages/transactions/transactions.component';
 import { UsersComponent } from './pages/users/users.component';
 import { RolesComponent } from './pages/roles/roles.component';
+import { DurationInputComponent } from './shared/duration-input/duration-input.component';
+import { DurationPipe } from './shared/duration.pipe';
+import { QuickRecordComponent } from './quick-record/quick-record.component';
 
 function initApp(auth: AuthService): () => Promise<void> {
   return () => auth.checkSetupStatus();
@@ -42,6 +45,9 @@ function initApp(auth: AuthService): () => Promise<void> {
     UsersComponent,
     RolesComponent,
     ProfileComponent,
+    DurationInputComponent,
+    DurationPipe,
+    QuickRecordComponent,
   ],
   imports: [
     BrowserModule,

@@ -19,6 +19,15 @@
       <router-outlet></router-outlet>
     </main>
   </div>
+
+  <button
+    *ngIf="auth.hasPermission('transactions.manage')"
+    class="fab"
+    (click)="openQuickRecord()"
+    title="Record print"
+  >+</button>
+
+  <app-quick-record (saved)="onPrintSaved()"></app-quick-record>
 </ng-container>
 
 <ng-template #noNav>

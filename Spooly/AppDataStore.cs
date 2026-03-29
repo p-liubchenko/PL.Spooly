@@ -59,6 +59,7 @@ public interface ITransactionsService
 	Task<List<StockTransaction>> GetStockTransactionsAsync(CancellationToken ct = default);
 	Task RecordPrintAsync(PrintCostRequest request, PrintCostResult result, Guid printerId, string printerName, Guid? operatingCurrencyId, IReadOnlyList<Currency> currencies, CancellationToken ct = default);
 	Task RecordSpoolPurchaseAsync(FilamentMaterial material, decimal kgAdded, decimal metersAdded, Money totalCost, CancellationToken ct = default);
+	Task RecordRestockAsync(FilamentMaterial material, decimal kgAdded, decimal metersAdded, Money totalCost, CancellationToken ct = default);
 	Task<(bool success, string error)> RevertPrintAsync(Guid transactionId, CancellationToken ct = default);
 	Task<(bool success, string error)> DeletePrintAsync(Guid transactionId, CancellationToken ct = default);
 }

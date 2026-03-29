@@ -5,6 +5,7 @@ import { PrintTransaction, StockTransaction, PrintCostResult } from '../models';
 
 export interface RecordPrintRequest {
   materialId: string;
+  printerId: string;
   filamentGrams: number;
   printHours: number;
   extraFixedCost: number;
@@ -22,6 +23,10 @@ export class TransactionsService {
 
   getStock(): Observable<StockTransaction[]> {
     return this.http.get<StockTransaction[]>(`${this.base}/stock`);
+  }
+
+  calculate(req: RecordPrintRequest): Observable<PrintCostResult> {
+    return this.http.post<PrintCostResult>(`${this.base}/calculate`, req);
   }
 
   recordPrint(req: RecordPrintRequest): Observable<PrintCostResult> {

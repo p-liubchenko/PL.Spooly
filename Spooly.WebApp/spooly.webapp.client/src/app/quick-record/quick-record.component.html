@@ -1,0 +1,112 @@
+<div class="modal-backdrop" *ngIf="visible" (click)="close()">
+  <div class="modal qr-modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <span class="modal-title">Record print</span>
+      <button class="modal-close" (click)="close()">✕</button>
+    </div>
+
+    <div class="error" *ngIf="loadError">{{ loadError }}</div>
+
+    <!-- Row 1: Filament type + Printer -->
+    <div class="fields-row">
+      <div class="field">
+        <label>Filament type</label>
+        <select [(ngModel)]="selectedType" (ngModelChange)="onTypeChange()" name="qr-type">
+          <option *ngFor="let t of availableTypes" [ngValue]="t.type">{{ t.label }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Printer</label>
+        <select [(ngModel)]="form.printerId" (ngModelChange)="onFormChange()" name="qr-printer">
+          <option *ngFor="let p of printers" [value]="p.id">{{ p.name }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Row 2: Material (filtered by type) -->
+    <div class="field">
+      <label>Material</label>
+      <select [(ngModel)]="form.materialId" (ngModelChange)="onFormChange()" name="qr-material"
+              [attr.disabled]="!filteredMaterials.length || null">
+        <option *ngIf="!filteredMaterials.length" value="">No materials of this type</option>
+        <option *ngFor="let m of filteredMaterials" [value]="m.id">
+          {{ m.name }} – {{ m.color }} &nbsp;({{ m.amountKg | number:'1.2-2' }} kg left)
+        </option>
+      </select>
+    </div>
+
+    <!-- Row 3: Numeric inputs -->
+    <div class="fields-row">
+      <div class="field">
+        <label>Filament used (g)</label>
+        <input type="number" [(ngModel)]="form.filamentGrams" (ngModelChange)="onFormChange()"
+               name="qr-grams" min="0" step="0.1" placeholder="0" />
+      </div>
+      <div class="field">
+        <label>Print time</label>
+        <app-duration-input [(ngModel)]="form.printHours" (ngModelChange)="onFormChange()"
+                            name="qr-hours"></app-duration-input>
+      </div>
+      <div class="field">
+        <label>Extra cost <span class="hint-inline">(optional)</span></label>
+        <input type="number" [(ngModel)]="form.extraFixedCost" (ngModelChange)="onFormChange()"
+               name="qr-extra" min="0" step="0.01" placeholder="0" />
+      </div>
+    </div>
+
+    <!-- Calculating spinner -->
+    <div class="qr-calc-hint" *ngIf="calculating">Calculating…</div>
+
+    <!-- Calculation error -->
+    <div class="error" *ngIf="calcError">{{ calcError }}</div>
+
+    <!-- Cost breakdown -->
+    <div class="qr-result" *ngIf="calcResult">
+      <table class="detail-cost-table">
+        <tbody>
+          <tr>
+            <td>Material</td>
+            <td class="cost-val">{{ calcResult.materialCost | number:'1.4-4' }}</td>
+          </tr>
+          <tr>
+            <td>Electricity ({{ calcResult.electricityKwh | number:'1.3-3' }} kWh)</td>
+            <td class="cost-val">{{ calcResult.electricityCost | number:'1.4-4' }}</td>
+          </tr>
+          <tr>
+            <td>Printer wear</td>
+            <td class="cost-val">{{ calcResult.printerWearCost | number:'1.4-4' }}</td>
+          </tr>
+          <tr>
+            <td>Fixed</td>
+            <td class="cost-val">{{ calcResult.fixedCost | number:'1.4-4' }}</td>
+          </tr>
+          <tr *ngIf="calcResult.extraFixedCost">
+            <td>Extra</td>
+            <td class="cost-val">{{ calcResult.extraFixedCost | number:'1.4-4' }}</td>
+          </tr>
+          <tr class="cost-total">
+            <td>Total</td>
+            <td class="cost-val">{{ calcResult.total | number:'1.4-4' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="qr-filament-hint">
+        ~{{ calcResult.filamentKg | number:'1.3-3' }} kg &nbsp;·&nbsp; ~{{ calcResult.estimatedMetersUsed | number:'1.1-1' }} m used
+      </div>
+    </div>
+
+    <!-- Save error -->
+    <div class="error" *ngIf="saveError">{{ saveError }}</div>
+
+    <!-- Actions -->
+    <div class="form-actions qr-actions">
+      <button class="btn-sm" (click)="reset()" [disabled]="saving">Clear</button>
+      <button class="btn-primary" (click)="save()"
+              [disabled]="!calcResult || saving || calculating">
+        {{ saving ? 'Saving…' : 'Save print' }}
+      </button>
+    </div>
+
+  </div>
+</div>

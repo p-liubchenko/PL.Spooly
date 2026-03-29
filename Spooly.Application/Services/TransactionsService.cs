@@ -58,6 +58,15 @@ public sealed class TransactionsService(
 		};
 
 		await printRepo.UpsertAsync(tx, ct);
+
+		// Deduct filament from material stock (mirrors the addition done in RevertPrintAsync)
+		var material = await materialRepo.GetByIdAsync(request.Material.Id, ct);
+		if (material is not null)
+		{
+			material.AmountKg = Math.Max(0m, material.AmountKg - result.FilamentKg);
+			material.EstimatedLengthMeters = Math.Max(0m, material.EstimatedLengthMeters - result.EstimatedMetersUsed);
+			await materialRepo.UpsertAsync(material, ct);
+		}
 	}
 
 	public async Task RecordSpoolPurchaseAsync(
@@ -76,6 +85,32 @@ public sealed class TransactionsService(
 			Id = Guid.NewGuid(),
 			CreatedAt = DateTimeOffset.UtcNow,
 			Type = StockTransactionType.SpoolPurchase,
+			MaterialId = material.Id,
+			MaterialNameSnapshot = materialName,
+			KgDelta = kgAdded,
+			MetersDelta = metersAdded,
+			TotalCost = totalCost
+		};
+
+		await stockRepo.UpsertAsync(tx, ct);
+	}
+
+	public async Task RecordRestockAsync(
+		FilamentMaterial material,
+		decimal kgAdded,
+		decimal metersAdded,
+		Money totalCost,
+		CancellationToken ct = default)
+	{
+		var materialName = string.IsNullOrWhiteSpace(material.Color)
+			? material.Name
+			: $"{material.Name} ({material.Color})";
+
+		var tx = new StockTransaction
+		{
+			Id = Guid.NewGuid(),
+			CreatedAt = DateTimeOffset.UtcNow,
+			Type = StockTransactionType.Restock,
 			MaterialId = material.Id,
 			MaterialNameSnapshot = materialName,
 			KgDelta = kgAdded,

@@ -29,3 +29,178 @@
 <div *ngIf="!loading && !selectedPrinter" class="info-box warn">
   No printer selected. Go to <a routerLink="/printers">Printers</a> to add and select one.
 </div>
+
+<!-- Candlestick chart -->
+<div *ngIf="!loading && chartData" class="usage-section">
+  <h2>
+    Filament flow — last 30 days
+    <span class="hint-inline">↑ resupply &nbsp;·&nbsp; ↓ consumption &nbsp;·&nbsp; body = net &nbsp;·&nbsp; filled = net positive &nbsp;·&nbsp; hollow = net negative</span>
+  </h2>
+
+  <div class="usage-chart-wrap">
+    <svg [attr.viewBox]="'0 0 ' + chartData.viewBoxW + ' ' + chartData.viewBoxH" class="usage-svg">
+
+      <!-- Y grid lines + labels -->
+      <g *ngFor="let g of chartData.yGridLines">
+        <line
+          [attr.x1]="chartData.left" [attr.y1]="g.y"
+          [attr.x2]="chartData.right" [attr.y2]="g.y"
+          [attr.stroke]="g.isZero ? 'var(--text-muted)' : 'var(--border)'"
+          [attr.stroke-width]="g.isZero ? 1.5 : 0.5"
+          [attr.stroke-dasharray]="g.isZero ? null : '4 4'"
+        />
+        <text
+          [attr.x]="chartData.left - 6"
+          [attr.y]="g.y + 4"
+          text-anchor="end"
+          font-size="10"
+          fill="var(--text-muted)"
+        >{{ g.label }}</text>
+      </g>
+
+      <!-- X axis day labels (sparse — every 5 days + month starts) -->
+      <ng-container *ngFor="let m of chartData.axisLabels">
+        <text *ngIf="m.show"
+          [attr.x]="m.x"
+          [attr.y]="chartData.viewBoxH - 8"
+          text-anchor="middle"
+          font-size="10"
+          [attr.fill]="m.label.length > 2 ? 'var(--accent)' : 'var(--text-muted)'"
+        >{{ m.label }}</text>
+      </ng-container>
+
+      <!-- Candlesticks — one series per filament type -->
+      <g *ngFor="let s of chartData.series">
+        <g *ngFor="let c of s.candles">
+          <ng-container *ngIf="c.hasData">
+            <!-- Centre wick: full vertical line from high to low -->
+            <line
+              [attr.x1]="c.wickX" [attr.y1]="c.topWickY"
+              [attr.x2]="c.wickX" [attr.y2]="c.bottomWickY"
+              [attr.stroke]="s.color"
+              stroke-width="1.5"
+            />
+            <!-- High cap (resupply peak) — only when wick extends above body -->
+            <line *ngIf="c.topWickY < c.bodyTopY - 1"
+              [attr.x1]="c.capX1" [attr.y1]="c.topWickY"
+              [attr.x2]="c.capX2" [attr.y2]="c.topWickY"
+              [attr.stroke]="s.color" stroke-width="2"
+            />
+            <!-- Low cap (consumption trough) — only when wick extends below body -->
+            <line *ngIf="c.bottomWickY > c.bodyBotY + 1"
+              [attr.x1]="c.capX1" [attr.y1]="c.bottomWickY"
+              [attr.x2]="c.capX2" [attr.y2]="c.bottomWickY"
+              [attr.stroke]="s.color" stroke-width="2"
+            />
+            <!-- Body: narrow rect, filled = net positive, hollow = net negative -->
+            <rect
+              [attr.x]="c.bodyLeft"
+              [attr.y]="c.bodyTopY"
+              [attr.width]="c.bodyWidth"
+              [attr.height]="c.bodyH"
+              [attr.fill]="c.isGreen ? s.color : 'var(--bg)'"
+              [attr.stroke]="s.color"
+              stroke-width="1.5"
+              rx="1"
+            />
+          </ng-container>
+        </g>
+      </g>
+
+    </svg>
+
+    <!-- Legend -->
+    <div class="chart-legend">
+      <span class="legend-item" *ngFor="let s of chartData.series">
+        <span class="legend-dot" [style.background]="s.color"></span>
+        {{ s.type }}
+      </span>
+      <span class="legend-item legend-sep">
+        <span class="legend-candle-filled"></span> net resupply
+      </span>
+      <span class="legend-item">
+        <span class="legend-candle-hollow"></span> net consumed
+      </span>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="!loading && !chartData" class="info-box" style="margin-top:1.5rem">
+  No transaction history yet. <a routerLink="/transactions">Record your first print</a> to see the flow chart here.
+</div>
+
+<!-- Stock level line chart -->
+<div *ngIf="!loading && stockChartData" class="usage-section">
+  <h2>Stock level — last 30 days
+    <span class="hint-inline">kg on hand per filament type, end of day</span>
+  </h2>
+
+  <div class="usage-chart-wrap">
+    <svg [attr.viewBox]="'0 0 ' + stockChartData.viewBoxW + ' ' + stockChartData.viewBoxH" class="usage-svg">
+
+      <!-- Y grid lines + labels -->
+      <g *ngFor="let g of stockChartData.yGridLines">
+        <line
+          [attr.x1]="stockChartData.left" [attr.y1]="g.y"
+          [attr.x2]="stockChartData.right" [attr.y2]="g.y"
+          [attr.stroke]="g.isZero ? 'var(--text-muted)' : 'var(--border)'"
+          [attr.stroke-width]="g.isZero ? 1.5 : 0.5"
+          [attr.stroke-dasharray]="g.isZero ? null : '4 4'"
+        />
+        <text
+          [attr.x]="stockChartData.left - 6"
+          [attr.y]="g.y + 4"
+          text-anchor="end"
+          font-size="10"
+          fill="var(--text-muted)"
+        >{{ g.label }}</text>
+      </g>
+
+      <!-- X axis day labels (sparse) -->
+      <ng-container *ngFor="let m of stockChartData.axisLabels">
+        <text *ngIf="m.show"
+          [attr.x]="m.x"
+          [attr.y]="stockChartData.viewBoxH - 8"
+          text-anchor="middle"
+          font-size="10"
+          [attr.fill]="m.label.length > 2 ? 'var(--accent)' : 'var(--text-muted)'"
+        >{{ m.label }}</text>
+      </ng-container>
+
+      <!-- Area fills (drawn first, under lines) -->
+      <g *ngFor="let s of stockChartData.series">
+        <polygon
+          [attr.points]="s.areaPoints"
+          [attr.fill]="s.color"
+          fill-opacity="0.12"
+          stroke="none"
+        />
+      </g>
+
+      <!-- Lines (drawn on top of fills) -->
+      <g *ngFor="let s of stockChartData.series">
+        <polyline
+          [attr.points]="s.polylinePoints"
+          [attr.stroke]="s.color"
+          stroke-width="2"
+          fill="none"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+      </g>
+
+    </svg>
+
+    <!-- Legend -->
+    <div class="chart-legend">
+      <span class="legend-item" *ngFor="let s of stockChartData.series">
+        <span class="legend-dot" [style.background]="s.color"></span>
+        {{ s.type }}
+      </span>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="!loading && !stockChartData" class="info-box" style="margin-top:1.5rem">
+  No materials yet. <a routerLink="/materials">Add a spool</a> to see the stock level chart here.
+</div>

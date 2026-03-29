@@ -11,7 +11,8 @@ namespace Spooly.WebApp.Server.Controllers;
 [Authorize]
 public sealed class MaterialsController(
 	IMaterialsService materials,
-	ICurrenciesService currencies) : ControllerBase
+	ICurrenciesService currencies,
+	ITransactionsService transactions) : ControllerBase
 {
 	public sealed record AddSpoolRequest(FilamentMaterial Material, decimal TotalPrice, Guid? OperatingCurrencyId);
 	public sealed record RestockRequest(decimal AddKg, decimal AddMeters, decimal AddTotalPrice, Guid? OperatingCurrencyId);
@@ -29,6 +30,8 @@ public sealed class MaterialsController(
 		var allCurrencies = await currencies.GetAllAsync(ct);
 		req.Material.Id = Guid.NewGuid();
 		await materials.AddSpoolAsync(req.Material, req.TotalPrice, req.OperatingCurrencyId, allCurrencies, ct);
+		var spoolCost = new Money(req.TotalPrice, req.OperatingCurrencyId);
+		await transactions.RecordSpoolPurchaseAsync(req.Material, req.Material.AmountKg, req.Material.EstimatedLengthMeters, spoolCost, ct);
 		return Ok(req.Material);
 	}
 
@@ -46,8 +49,18 @@ public sealed class MaterialsController(
 	public async Task<IActionResult> Restock(Guid id, [FromBody] RestockRequest req, CancellationToken ct)
 	{
 		var allCurrencies = await currencies.GetAllAsync(ct);
+		var allMaterials = await materials.GetAllAsync(ct);
+		var material = allMaterials.FirstOrDefault(m => m.Id == id);
+		if (material is null)
+			return BadRequest("Material not found.");
+
 		var (ok, error) = await materials.RestockAsync(id, req.AddKg, req.AddMeters, req.AddTotalPrice, req.OperatingCurrencyId, allCurrencies, ct);
-		return ok ? Ok() : BadRequest(error);
+		if (!ok)
+			return BadRequest(error);
+
+		var restockCost = new Money(req.AddTotalPrice, req.OperatingCurrencyId);
+		await transactions.RecordRestockAsync(material, req.AddKg, req.AddMeters, restockCost, ct);
+		return Ok();
 	}
 
 	[HttpPost("{id:guid}/consume")]

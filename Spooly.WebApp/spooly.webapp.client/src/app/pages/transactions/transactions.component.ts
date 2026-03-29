@@ -1,13 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
-import { TransactionsService, RecordPrintRequest } from '../../services/transactions.service';
+import { TransactionsService } from '../../services/transactions.service';
 import { MaterialsService } from '../../services/materials.service';
+import { PrintersService } from '../../services/printers.service';
 import { SettingsService } from '../../services/settings.service';
+import { QuickRecordService } from '../../services/quick-record.service';
 import {
-  PrintTransaction, StockTransaction, FilamentMaterial, AppSettings,
+  PrintTransaction, StockTransaction, FilamentMaterial, AppSettings, Printer,
   PrintTransactionStatus, STOCK_TRANSACTION_TYPE_LABELS, StockTransactionType,
 } from '../../models';
 import { AuthService } from '../../services/auth.service';
+
+export interface CombinedEntry {
+  date: string;
+  kind: 'print' | 'stock';
+  print?: PrintTransaction;
+  stock?: StockTransaction;
+}
 
 @Component({
   selector: 'app-transactions',
@@ -18,14 +27,13 @@ export class TransactionsComponent implements OnInit {
   prints: PrintTransaction[] = [];
   stock: StockTransaction[] = [];
   materials: FilamentMaterial[] = [];
+  printers: Printer[] = [];
   settings: AppSettings | null = null;
-  tab: 'prints' | 'stock' = 'prints';
+  tab: 'all' | 'prints' | 'stock' = 'all';
   loading = true;
   error = '';
 
-  showRecordForm = false;
-  recordForm: RecordPrintRequest = { materialId: '', filamentGrams: 0, printHours: 0, extraFixedCost: 0 };
-  recordResult: { total: number; materialCost: number; electricityCost: number; printerWearCost: number; fixedCost: number } | null = null;
+  detailEntry: CombinedEntry | null = null;
 
   PrintTransactionStatus = PrintTransactionStatus;
   stockTypeLabel = (t: StockTransactionType) => STOCK_TRANSACTION_TYPE_LABELS[t] ?? String(t);
@@ -33,11 +41,15 @@ export class TransactionsComponent implements OnInit {
   constructor(
     private transactionsService: TransactionsService,
     private materialsService: MaterialsService,
+    private printersService: PrintersService,
     private settingsService: SettingsService,
+    private quickRecord: QuickRecordService,
     public auth: AuthService,
   ) {}
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void {
+    this.load();
+  }
 
   load(): void {
     this.loading = true;
@@ -45,12 +57,14 @@ export class TransactionsComponent implements OnInit {
       prints: this.transactionsService.getPrints(),
       stock: this.transactionsService.getStock(),
       materials: this.materialsService.getAll(),
+      printers: this.printersService.getAll(),
       settings: this.settingsService.get(),
     }).subscribe({
       next: res => {
         this.prints = res.prints.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         this.stock = res.stock.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         this.materials = res.materials;
+        this.printers = res.printers;
         this.settings = res.settings;
         this.loading = false;
       },
@@ -58,28 +72,15 @@ export class TransactionsComponent implements OnInit {
     });
   }
 
-  openRecord(): void {
-    this.recordResult = null;
-    this.recordForm = {
-      materialId: this.materials[0]?.id ?? '',
-      filamentGrams: 0,
-      printHours: 0,
-      extraFixedCost: 0,
-    };
-    this.showRecordForm = true;
+  get combinedEntries(): CombinedEntry[] {
+    const entries: CombinedEntry[] = [
+      ...this.prints.map(p => ({ date: p.createdAt, kind: 'print' as const, print: p })),
+      ...this.stock.map(s => ({ date: s.createdAt, kind: 'stock' as const, stock: s })),
+    ];
+    return entries.sort((a, b) => b.date.localeCompare(a.date));
   }
 
-  recordPrint(): void {
-    this.error = '';
-    this.transactionsService.recordPrint(this.recordForm).subscribe({
-      next: res => {
-        this.recordResult = res;
-        this.showRecordForm = false;
-        this.load();
-      },
-      error: (err: any) => { this.error = err?.error ?? 'Failed to record print.'; },
-    });
-  }
+  openRecord(): void { this.quickRecord.open(); }
 
   revert(id: string): void {
     if (!confirm('Revert this print? Stock will be restored.')) return;
@@ -100,4 +101,16 @@ export class TransactionsComponent implements OnInit {
   formatDate(iso: string): string {
     return new Date(iso).toLocaleString();
   }
+
+  openDetail(entry: CombinedEntry): void { this.detailEntry = entry; }
+  openPrintDetail(p: PrintTransaction): void { this.detailEntry = { date: p.createdAt, kind: 'print', print: p }; }
+  openStockDetail(s: StockTransaction): void { this.detailEntry = { date: s.createdAt, kind: 'stock', stock: s }; }
+  closeDetail(): void { this.detailEntry = null; }
+
+  printTotal(p: PrintTransaction): number {
+    return p.materialCost + p.electricityCost + p.printerWearCost + p.fixedCost + p.extraFixedCost;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void { this.closeDetail(); }
 }

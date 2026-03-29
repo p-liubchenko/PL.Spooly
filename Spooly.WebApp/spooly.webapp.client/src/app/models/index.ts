@@ -75,6 +75,7 @@ export interface PrintTransaction {
   printerWearCost: number;
   fixedCost: number;
   extraFixedCost: number;
+  totalCost: Money | null;
   note: string | null;
   revertedByTransactionId: string | null;
   revertedAt: string | null;
@@ -102,6 +103,7 @@ export interface StockTransaction {
   materialNameSnapshot: string;
   kgDelta: number;
   metersDelta: number;
+  totalCost: Money | null;
   note: string | null;
 }
 

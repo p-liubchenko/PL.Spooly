@@ -84,21 +84,17 @@ public sealed class PrintCostCalculatorCliDrawer(
 
 		if (deductStock)
 		{
-			var (consumeOk, consumeError) = materialsService.ConsumeAsync(material.Id, result.FilamentKg, result.EstimatedMetersUsed).GetAwaiter().GetResult();
-			if (!consumeOk)
+			var selectedPrinter = printers.FirstOrDefault(p => p.Id == settings.SelectedPrinterId);
+			if (selectedPrinter is null)
 			{
-				ConsoleEx.ShowMessage(consumeError);
+				ConsoleEx.ShowMessage("No printer selected. Select a printer first.");
 				return;
 			}
 
-			var selectedPrinter = printers.FirstOrDefault(p => p.Id == settings.SelectedPrinterId);
-			if (selectedPrinter is not null)
-			{
-				transactionsService.RecordPrintAsync(
-					request, result,
-					selectedPrinter.Id, selectedPrinter.Name,
-					settings.OperatingCurrencyId, currencies).GetAwaiter().GetResult();
-			}
+			transactionsService.RecordPrintAsync(
+				request, result,
+				selectedPrinter.Id, selectedPrinter.Name,
+				settings.OperatingCurrencyId, currencies).GetAwaiter().GetResult();
 
 			Console.WriteLine("Stock was deducted.");
 			Console.WriteLine();

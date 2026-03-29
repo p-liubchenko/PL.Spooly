@@ -1,0 +1,28 @@
+<div class="duration-input">
+  <input
+    class="dur-field dur-h"
+    type="number"
+    [value]="hours"
+    (input)="onHoursInput($event)"
+    [attr.disabled]="isDisabled || null"
+    min="0"
+    placeholder="0"
+    aria-label="Hours"
+  />
+  <span class="dur-sep">h</span>
+  <input
+    class="dur-field dur-m"
+    type="number"
+    [value]="minutes"
+    (input)="onMinutesInput($event)"
+    [attr.disabled]="isDisabled || null"
+    min="0"
+    max="59"
+    placeholder="0"
+    aria-label="Minutes"
+  />
+  <span class="dur-sep">m</span>
+  <span class="dur-hint" *ngIf="decimalHours > 0">
+    = {{ decimalHours | number:'1.2-2' }} h
+  </span>
+</div>
