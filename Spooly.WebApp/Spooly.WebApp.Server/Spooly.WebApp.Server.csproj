@@ -10,6 +10,11 @@
     <SpaRoot>../spooly.webapp.client/</SpaRoot>
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:52298</SpaProxyServerUrl>
+    <Copyright>Copyright (C) 2026 Paul Liubchenko</Copyright>
+    <Authors>Paul Liubchenko</Authors>
+    <Product>Spooly</Product>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/p-liubchenko/PL.PrintPrice</RepositoryUrl>
     <!-- Angular output path (relative to SpaRoot) produced by "npm run build" -->
     <SpaDistPath>$(SpaRoot)dist/spooly.webapp.client/browser/</SpaDistPath>
   </PropertyGroup>

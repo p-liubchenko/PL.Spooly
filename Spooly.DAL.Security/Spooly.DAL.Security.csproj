@@ -6,6 +6,11 @@
     <Nullable>enable</Nullable>
     <!-- Shares user secrets with the web project so dotnet ef can resolve the connection string -->
     <UserSecretsId>6c4a21fc-d121-40f0-bab8-a04d45e06aa5</UserSecretsId>
+    <Copyright>Copyright (C) 2026 Paul Liubchenko</Copyright>
+    <Authors>Paul Liubchenko</Authors>
+    <Product>Spooly</Product>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/p-liubchenko/PL.PrintPrice</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

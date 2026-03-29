@@ -6,6 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>Spooly.Cli-efc8fb7f-9f5c-44d3-8c0c-6b4dcb4d5f6c</UserSecretsId>
+    <Copyright>Copyright (C) 2026 Paul Liubchenko</Copyright>
+    <Authors>Paul Liubchenko</Authors>
+    <Product>Spooly</Product>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/p-liubchenko/PL.PrintPrice</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
